@@ -7,7 +7,7 @@ export const MARIA_QUERIES = {
       `CREATE TABLE ${table} (` +
       "id INT NOT NULL PRIMARY KEY AUTO_INCREMENT," +
       "name VARCHAR(255) NOT NULL," +
-      "date_timestamp TIMESTAMP NOT NULL" +
+      "date_timestamp TIMESTAMP(3) NOT NULL" +
       ");",
   },
   INSERT: (table: string): { query: string; binds: (string | Date)[] } => ({

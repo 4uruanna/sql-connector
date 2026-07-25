@@ -1,0 +1,4 @@
+export const CONSTANT = {
+  CONNECTION_TIMEOUT: 3,
+  IDLE_TIMEOUT: 180
+}

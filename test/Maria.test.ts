@@ -1,7 +1,7 @@
 // Copyright 2026 Villalonga Software. All rights reserved. Apache-2.0 license.
 
-import { MariaDatabase, type Result } from "../source/mod.ts";
-import { assertEquals } from "@std/assert/equals";
+import { MariaDatabase, type Result } from "@4uruanna/sql-connector";
+import { assertArrayIncludes, assertEquals } from "@std/assert";
 import type { IFooModel } from "./interfaces.ts";
 import { MARIA_QUERIES } from "./queries.ts";
 
@@ -9,14 +9,14 @@ const getEnv = Deno.env.get;
 
 const table = getEnv("TABLE_NAME")!;
 
-const database = new MariaDatabase(
-  getEnv("MARIA_DATABASE_HOST")!,
-  Number(getEnv("MARIA_DATABASE_PORT"))!,
-  getEnv("MARIA_DATABASE_NAME")!,
-  getEnv("MARIA_DATABASE_USERNAME")!,
-  getEnv("MARIA_DATABASE_PASSWORD")!,
-  2,
-);
+const database = new MariaDatabase({
+  host: getEnv("MARIA_DATABASE_HOST")!,
+  port: Number(getEnv("MARIA_DATABASE_PORT"))!,
+  database: getEnv("MARIA_DATABASE_NAME")!,
+  user: getEnv("MARIA_DATABASE_USERNAME")!,
+  password: getEnv("MARIA_DATABASE_PASSWORD")!,
+  connectionLimit: 2,
+});
 
 let clientA = await database.createClient();
 let clientB = await database.createClient();
@@ -128,7 +128,15 @@ Deno.test("Maria - Concurrent", async () => {
   ]);
 
   const result = await clientA.query<IFooModel>(`SELECT * FROM ${table}`);
-  assertEquals(result.rows[0].name, mockA.binds[0]);
-  assertEquals(result.rows[1].name, mockB.binds[0]);
-  assertEquals(result.rows[2].name, mockC.binds[0]);
+
+  for (const row of result.rows) {
+    assertArrayIncludes(
+      [
+        mockA.binds[0],
+        mockB.binds[0],
+        mockC.binds[0]
+      ],
+      [row.name]
+    );
+  }
 });

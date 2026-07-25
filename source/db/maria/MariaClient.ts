@@ -1,21 +1,22 @@
 // Copyright 2026 Villalonga Software. All rights reserved. Apache-2.0 license.
 
 import type { PoolConnection } from "mariadb";
-import { Client, type Model, type Result } from "../../mod.ts";
+import { Client, type Model, type Result } from "@4uruanna/sql-connector";
 
 /**
  * MariaDB client implementation.
  */
 export class MariaClient extends Client {
-  private readonly _client: PoolConnection;
+  private _disposed: boolean = false;
 
   /**
    * Creates a new MariaClient.
-   * @param {PoolConnection} client - The pool connection to wrap.
+   * @param {PoolConnection} _client - The pool connection to wrap.
    */
-  public constructor(client: PoolConnection) {
+  public constructor(
+    private readonly _client: PoolConnection
+  ) {
     super();
-    this._client = client;
   }
 
   /**
@@ -24,7 +25,16 @@ export class MariaClient extends Client {
    */
   public override async dispose(): Promise<void> {
     await super.dispose();
-    await this._client.release();
+
+    if (this._disposed === false) {
+      try {
+        this._client.release();
+      } catch (error) {
+        console.error("Failed to release client:", error);
+      } finally {
+        this._disposed = true;
+      }
+    }
   }
 
   /**
@@ -58,12 +68,12 @@ export class MariaClient extends Client {
    * Executes a SQL query and returns the result.
    * @template T - The model type for the query results.
    * @param {string} query - The SQL query string to execute.
-   * @param {unknown[]} [binds] - Optional array of parameter bindings.
+   * @param {unknown[]|undefined} bindArray - Optional array of parameter bindings.
    * @returns {Promise<Result<T>>}
    */
-  public async query<T extends Model = Record<PropertyKey, never>>(
+  public async query<T = Model>(
     query: string,
-    binds?: unknown[],
+    bindArray?: unknown[],
   ): Promise<Result<T>> {
     const result = await this._client.query<T[]>(
       {
@@ -71,7 +81,7 @@ export class MariaClient extends Client {
         rowsAsArray: false,
         bigIntAsNumber: true,
       },
-      binds ?? [],
+      bindArray ?? [],
     );
 
     return {

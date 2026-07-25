@@ -5,6 +5,6 @@
  */
 export class TransactionNotFoundError extends Error {
   public constructor() {
-    super("Transaction must be start before commiting of rollbacking it.");
+    super("Transaction must be started before commiting or rollbacking it.");
   }
 }

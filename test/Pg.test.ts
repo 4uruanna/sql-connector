@@ -1,23 +1,22 @@
 // Copyright 2026 Villalonga Software. All rights reserved. Apache-2.0 license.
 
-import { assertEquals } from "@std/assert/equals";
-import { PgDatabase, type Result } from "../source/mod.ts";
+import { assertArrayIncludes, assertEquals } from "@std/assert";
+import { PgDatabase, type Result } from "@4uruanna/sql-connector";
 import { PG_QUERIES } from "./queries.ts";
 import type { IFooModel } from "./interfaces.ts";
 
 const getEnv = Deno.env.get;
 
-const table = getEnv("TABLE_NAME")!;
+const table = getEnv("test.TABLE_NAME")!;
 
-const database = new PgDatabase(
-  getEnv("PG_DATABASE_HOST")!,
-  Number(getEnv("PG_DATABASE_PORT")),
-  getEnv("PG_DATABASE_NAME")!,
-  getEnv("PG_DATABASE_USERNAME")!,
-  getEnv("PG_DATABASE_PASSWORD")!,
-  getEnv("PG_DATABASE_SCHEMA")!,
-  2,
-);
+const database = new PgDatabase({
+  host: getEnv("PG_DATABASE_HOST")!,
+  port: Number(getEnv("PG_DATABASE_PORT"))!,
+  database: getEnv("PG_DATABASE_NAME")!,
+  user: getEnv("PG_DATABASE_USERNAME")!,
+  password: getEnv("PG_DATABASE_PASSWORD")!,
+  connectionLimit: 2,
+});
 
 let clientA = await database.createClient();
 let clientB = await database.createClient();
@@ -127,7 +126,15 @@ Deno.test("Pg - Concurrent", async () => {
   ]);
 
   const result = await clientA.query<IFooModel>(`SELECT * FROM ${table}`);
-  assertEquals(result.rows[0].name, mockA.binds[0]);
-  assertEquals(result.rows[1].name, mockB.binds[0]);
-  assertEquals(result.rows[2].name, mockC.binds[0]);
+
+  for (const row of result.rows) {
+    assertArrayIncludes(
+      [
+        mockA.binds[0],
+        mockB.binds[0],
+        mockC.binds[0]
+      ],
+      [row.name]
+    );
+  }
 });

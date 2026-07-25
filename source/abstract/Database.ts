@@ -1,6 +1,6 @@
 // Copyright 2026 Villalonga Software. All rights reserved. Apache-2.0 license.
 
-import type { Client } from "../mod.ts";
+import type { Client } from "@4uruanna/sql-connector";
 
 /**
  * Abstract base class for SQL database implementations.

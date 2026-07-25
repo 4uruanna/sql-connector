@@ -1,8 +1,8 @@
 {
   "name": "@4uruanna/sql-connector",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "Apache-2.0",
-  "exports": "./source/mod.ts",
+  "exports": "./source/export.ts",
   "tasks": {
     "test": "deno test --allow-net --allow-sys --allow-env --env-file ./test/",
     "test:maria": "deno test --allow-net --allow-sys --allow-env --env-file ./test/Maria.test.ts",

@@ -1,22 +1,20 @@
 // Copyright 2026 Villalonga Software. All rights reserved. Apache-2.0 license.
 
 import type { PoolClient } from "pg";
-import { Client, type Model, type Result } from "../../mod.ts";
+import { Client, type Model, type Result } from "@4uruanna/sql-connector";
 
 /**
  * PostgreSQL client implementation.
  */
 export class PgClient extends Client {
-  private readonly _client: PoolClient;
   private _disposed: boolean = false;
 
   /**
    * Creates a new PgClient.
-   * @param {PoolClient} client - The pool connection to wrap.
+   * @param {PoolClient} _client - The pool connection to wrap.
    */
-  public constructor(client: PoolClient) {
+  public constructor(private readonly _client: PoolClient) {
     super();
-    this._client = client;
   }
 
   /**
@@ -26,9 +24,14 @@ export class PgClient extends Client {
   public override async dispose(): Promise<void> {
     await super.dispose();
 
-    if(this._disposed === false) {
-      this._client.release();
-      this._disposed = true;
+    if (this._disposed === false) {
+      try {
+        this._client.release();
+      } catch (error) {
+        console.error("Failed to release client:", error);
+      } finally {
+        this._disposed = true;
+      }
     }
   }
 
@@ -63,20 +66,18 @@ export class PgClient extends Client {
    * Executes a SQL query and returns the result.
    * @template T - The model type for the query results.
    * @param {string} query - The SQL query string to execute.
-   * @param {unknown[]} [binds] - Optional array of parameter bindings.
+   * @param {unknown[]|undefined} bindArray - Optional array of parameter bindings.
    * @returns {Promise<Result<T>>}
    */
-  public async query<T extends Model = Record<PropertyKey, never>>(
+  public async query<T = Model>(
     query: string,
     bindArray?: unknown[],
   ): Promise<Result<T>> {
-    const result = await this._client.query<T>({
+    const result = await this._client.query({
       text: query,
-      values: bindArray,
+      values: bindArray ?? [],
     });
 
-    return {
-      rows: result.rows,
-    };
+    return { rows: result.rows as T[] };
   }
 }

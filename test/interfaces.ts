@@ -1,6 +1,4 @@
-import type { Model } from "../source/mod.ts";
-
-export interface IFooModel extends Model {
+export interface IFooModel {
   id: number;
   name: string;
   date_timestamp: Date;

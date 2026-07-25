@@ -5,7 +5,7 @@ import {
   type Result,
   TransactionInProgressError,
   TransactionNotFoundError,
-} from "../mod.ts";
+} from "@4uruanna/sql-connector";
 
 /**
  * Abstract base class for SQL database clients.
@@ -17,12 +17,12 @@ export abstract class Client {
    * Executes a SQL query and returns the result.
    * @template T - The model type for the query results.
    * @param {string} query - The SQL query string to execute.
-   * @param {unknown[]} [binds] - Optional array of parameter bindings for prepared statements.
+   * @param {unknown[]|undefined} bindArray - Optional array of parameter bindings for prepared statements.
    * @returns {Promise<Result<T>>}
    */
-  public abstract query<T extends Model>(
+  public abstract query<T = Model>(
     query: string,
-    binds?: unknown[],
+    bindArray?: unknown[],
   ): Promise<Result<T>>;
 
   /**
